@@ -1,0 +1,17 @@
+---
+# defaults file for ansible-role-oracle-jdk
+
+_jdk:
+  enable: yes
+  make_default: yes
+  prio: 2000
+  version: 1.8.0_92
+  url: "http://download.oracle.com/otn-pub/java/jdk/8u92-b14/jdk-8u92-linux-x64.tar.gz"
+  local_cache_dir: /var/cache/rheinwerk/oracle-jdk
+  jce:
+    url: "http://download.oracle.com/otn-pub/java/jce/8/jce_policy-8.zip"
+    files:
+      - "UnlimitedJCEPolicyJDK8/local_policy.jar"
+      - "UnlimitedJCEPolicyJDK8/US_export_policy.jar"
+
+

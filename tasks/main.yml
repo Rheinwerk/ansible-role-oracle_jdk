@@ -1,0 +1,74 @@
+---
+# tasks file for ansible-role-oracle-jdk
+
+- name: Apt Update
+  apt: update_cache=yes
+  when: RW_APT_CACHE_UPDATE is defined
+
+- name: Install unzip utility
+  apt: pkg=unzip state=installed
+
+- block:
+    - name: Create local cache dir
+      file: dest="{{ _jdk.local_cache_dir }}" state=directory owner=root group=root mode=0755
+      delegate_to: localhost
+      run_once: True
+
+    - set_fact:
+        jdk_dir: "jdk{{ _jdk.version }}"
+        jdk_tgz: "jdk-{{ _jdk.version }}.tgz"
+        jce_zip: "jce-{{ _jdk.version }}.zip"
+
+
+    - block:
+      - name: Download JDK
+        get_url: url="{{ _jdk.url }}" dest="{{ _jdk.local_cache_dir }}/{{ jdk_tgz }}" headers="Cookie:oraclelicense=accept-securebackup-cookie"
+        register: downloaded_jdk
+      - name: Download JCE
+        get_url: url="{{ _jdk.jce.url }}" dest="{{ _jdk.local_cache_dir }}/{{ jce_zip }}" headers="Cookie:oraclelicense=accept-securebackup-cookie"
+        register: downloaded_jce
+      - block:
+        - name: Create Temp Unpack Dir
+          command: mktemp -d
+          register: tmp_unpack_dir_reg
+        - set_fact:
+            tmp_unpack_dir: "{{ tmp_unpack_dir_reg.stdout }}"
+        - name: Unzip JDK
+          unarchive: src="{{ _jdk.local_cache_dir }}/{{ jdk_tgz }}" dest="{{ tmp_unpack_dir }}" copy=no
+        - name: Unzip JCE
+          unarchive: src="{{ _jdk.local_cache_dir }}/{{ jce_zip }}" dest="{{ tmp_unpack_dir }}" copy=no
+        - name: Inject JCE
+          shell: cp "{{ tmp_unpack_dir }}/UnlimitedJCEPolicyJDK8/US_export_policy.jar" "{{ tmp_unpack_dir }}/{{ jdk_dir }}/jre/lib/security"
+          with_items: "{{ _jdk.jce.files }}"
+        - name: Update local cache
+          shell: mv "{{ tmp_unpack_dir }}/{{ jdk_dir }}" "{{ _jdk.local_cache_dir }}/{{ jdk_dir }}" 
+        when: downloaded_jdk|changed or downloaded_jce|changed
+      run_once: yes
+      delegate_to: localhost		
+
+    - name: Install JDK
+      synchronize: src="{{ _jdk.local_cache_dir }}/{{ jdk_dir }}" dest="/usr/java/" delete=yes
+
+    - name: Set JDK ownership
+      file: dest="/usr/java/{{ jdk_dir }}" owner=root group=root recurse=yes state=directory
+
+    - block:
+      - name: Symlink JDK to default
+        file: src="/usr/java/{{ jdk_dir }}" dest="/usr/java/default" state=link
+      - name: Set installed JDK as active alternative
+        command: update-alternatives --install "/usr/bin/{{ item }}" {{ item }} /usr/java/default/bin/{{ item }} {{ _jdk.prio }} --slave "/usr/share/man/man1/{{ item }}.1" "{{ item }}.1" /usr/java/default/man/man1/{{ item }}.1
+        with_items:
+          - javac
+          - java
+          - javap
+          - jstack
+          - jps
+      when: _jdk.make_default is defined and _jdk.make_default
+
+  always:
+    - name: Delete Temp Download Directory
+      file: path={{ tmp_unpack_dir }} state=absent
+      when: tmp_unpack_dir is defined and RW_DEBUG is not defined
+
+  when: RW_ENABLE_DOWNLOADS is defined
+
