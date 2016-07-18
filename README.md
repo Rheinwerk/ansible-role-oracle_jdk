@@ -1,8 +1,7 @@
-Grafana
+Oracle JDK
 =========
 
-This role installs an Oracle JDK and sets it up as the default JDK on
-Ubuntu.
+This role downloads and installs an Oracle JDK and sets it up as the default JDK on Ubuntu. The download is cached in a local directory on the machine running Ansible and synchronized to remote hosts. This saves time and bandwidth.
 
 [![Build Status](https://travis-ci.org/Rheinwerk/ansible-role-oracle_jdk.svg?branch=master)](https://travis-ci.org/Rheinwerk/ansible-role-oracle_jdk)
 
@@ -14,7 +13,7 @@ None.
 Role Variables
 --------------
 
-There are three variables that drive this role: `_jdk`, `RW_APT_CACHE_UPDATE`, and `RW_ENABLE_DOWNLOADS`. `_jdk` is a map that contains all configuration and settings for this role. `RW_APT_CACHE_UPDATE` `RW_ENABLE_DOWNLOADS? may be specified as _extra variables_ on invocation of Ansible in order to force `apt-get update` or download assets from the Internet, respectively. Please see `defaults/main.yml` for details.
+There are two variables that drive this role: `_jdk` and `RW_APT_CACHE_UPDATE`. `_jdk` is a map that contains all configuration and settings for this role. `RW_APT_CACHE_UPDATE` may be specified as _extra variables_ when invoking Ansible in order to force `apt-get update`. Please see `defaults/main.yml` for details.
 
 Dependencies
 ------------
