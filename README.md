@@ -4,7 +4,7 @@ Grafana
 This role installs an Oracle JDK and sets it up as the default JDK on
 Ubuntu.
 
-[![Build Status](https://travis-ci.org/Rheinwerk/ansible-role-oracle-jdk.svg?branch=master)](https://travis-ci.org/Rheinwerk/ansible-role-oracle-jdk)
+[![Build Status](https://travis-ci.org/Rheinwerk/ansible-role-oracle_jdk.svg?branch=master)](https://travis-ci.org/Rheinwerk/ansible-role-oracle_jdk)
 
 Requirements
 ------------
