@@ -2,6 +2,7 @@
 # tasks file for ansible-role-oracle-jdk
 
 - name: Apt Update
+  become: yes
   apt: update_cache=yes
   when: RW_APT_CACHE_UPDATE is defined
 
@@ -50,9 +51,11 @@
   delegate_to: localhost
 
 - name: Install JDK
+  become: yes
   synchronize: src="{{ _jdk.local_cache_dir }}/{{ jdk_dir }}" dest="/usr/java/" delete=yes
 
 - name: Set JDK ownership
+  become: yes
   file: dest="/usr/java/{{ jdk_dir }}" owner=root group=root recurse=yes state=directory
 
 - block:
@@ -67,6 +70,6 @@
       - jstack
       - jps
   when: _jdk.make_default is defined and _jdk.make_default
-
+  become: yes
 
 # vim: set ft=ansible:set noet:ts=2:ws=2:
