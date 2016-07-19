@@ -6,8 +6,9 @@
   apt: update_cache=yes
   when: RW_APT_CACHE_UPDATE is defined
 
-- name: Install unzip utility
-  apt: pkg=unzip state=installed
+- name: Install rsync
+  become: yes
+  apt: pkg=rsync state=installed
 
 - name: Create local cache dir
   file: dest="{{ _jdk.local_cache_dir }}" state=directory owner=root group=root mode=0755
