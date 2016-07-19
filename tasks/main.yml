@@ -41,8 +41,10 @@
     - name: Inject JCE
       shell: cp "{{ tmp_unpack_dir }}/{{ item }}" "{{ tmp_unpack_dir }}/{{ jdk_dir }}/jre/lib/security"
       with_items: "{{ _jdk.jce.files }}"
+    - name: Remove old cached version
+      file: dest="{{ _jdk.local_cache_dir }}/{{ jdk_dir }}" state=absent
     - name: Update local cache
-      shell: mv "{{ tmp_unpack_dir }}/{{ jdk_dir }}" "{{ _jdk.local_cache_dir }}/{{ jdk_dir }}"
+      command: mv "{{ tmp_unpack_dir }}/{{ jdk_dir }}" "{{ _jdk.local_cache_dir }}/"
     when: downloaded_jdk|changed or downloaded_jce|changed
     always:
       - name: Delete Temp Download Directory
