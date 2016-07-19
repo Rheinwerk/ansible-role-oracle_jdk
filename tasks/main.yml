@@ -35,9 +35,9 @@
     - set_fact:
         tmp_unpack_dir: "{{ tmp_unpack_dir_reg.stdout }}"
     - name: Unzip JDK
-      unarchive: src="{{ _jdk.local_cache_dir }}/{{ jdk_tgz }}" dest="{{ tmp_unpack_dir }}" copy=no
+      command: tar xzf "{{ _jdk.local_cache_dir }}/{{ jdk_tgz }}" -C "{{ tmp_unpack_dir }}"
     - name: Unzip JCE
-      unarchive: src="{{ _jdk.local_cache_dir }}/{{ jce_zip }}" dest="{{ tmp_unpack_dir }}" copy=no
+      command: unzip "{{ _jdk.local_cache_dir }}/{{ jce_zip }}" -d "{{ tmp_unpack_dir }}"
     - name: Inject JCE
       shell: cp "{{ tmp_unpack_dir }}/{{ item }}" "{{ tmp_unpack_dir }}/{{ jdk_dir }}/jre/lib/security"
       with_items: "{{ _jdk.jce.files }}"
