@@ -53,13 +53,13 @@
   run_once: yes
   delegate_to: localhost
 
-- name: Install JDK
+- block:
+  - name: Install JDK
+    synchronize: src="{{ _jdk.local_cache_dir }}/{{ jdk_dir }}" dest="/usr/java/" delete=yes
+  - name: Set JDK ownership
+    file: dest="/usr/java/{{ jdk_dir }}" owner=root group=root recurse=yes state=directory
+  when: downloaded_jdk|changed or downloaded_jce|changed
   become: yes
-  synchronize: src="{{ _jdk.local_cache_dir }}/{{ jdk_dir }}" dest="/usr/java/" delete=yes
-
-- name: Set JDK ownership
-  become: yes
-  file: dest="/usr/java/{{ jdk_dir }}" owner=root group=root recurse=yes state=directory
 
 - block:
   - name: Symlink JDK to default
