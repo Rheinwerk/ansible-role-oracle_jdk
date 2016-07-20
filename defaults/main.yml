@@ -4,7 +4,7 @@
 _jdk:
   url: "http://download.oracle.com/otn-pub/java/jdk/8u92-b14/jdk-8u92-linux-x64.tar.gz"
   version: 1.8.0_92
-  local_cache_dir: /var/cache/rheinwerk/oracle_jdk
+  local_cache_dir: ~/rheinwerk/cache/oracle_jdk
   make_default: yes
   prio: 2000
   jce:
