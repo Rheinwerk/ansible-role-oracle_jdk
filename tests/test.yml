@@ -1,7 +1,5 @@
 ---
 - hosts: localhost
   connection: local
-  vars:
-    RW_ENABLE_DOWNLOADS: yes
   roles:
     - ansible-role-oracle_jdk

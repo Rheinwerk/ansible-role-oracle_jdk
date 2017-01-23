@@ -1,83 +1,15 @@
 ---
-# tasks file for ansible-role-oracle-jdk
+# Install Java via PPA
 
-- name: Apt Update
-  become: yes
-  apt: update_cache=yes
-  when: RW_APT_CACHE_UPDATE is defined
+- name: Add webupd8team PPA
+  apt_repository: repo='ppa:webupd8team/java'
 
-- name: Install rsync
-  become: yes
-  apt: pkg=rsync state=installed
+- name: Auto-Accept Oracle Licensing Terms
+  debconf: name="oracle-java8-installer" setting="shared/accepted-oracle-license-v1-1" vtype="select" value="true"
 
-- name: Create local cache dir
-  file: dest="{{ _jdk.local_cache_dir }}" state=directory mode=0755
-  delegate_to: localhost
-  run_once: True
+- name: Install Java 8 JDK
+  apt: name="{{ item }}" state=latest
+  with_items:
+    - oracle-java8-installer
+    - oracle-java8-unlimited-jce-policy
 
-- name: Set internal facts
-  set_fact:
-    jdk_dir: "jdk{{ _jdk.version }}"
-    jdk_tgz: "jdk-{{ _jdk.version }}.tgz"
-    jce_zip: "jce-{{ _jdk.version }}.zip"
-    alt_dir: "{{ _jdk.symlink | default(_jdk.install_base_dir ~ '/jdk' ~ _jdk.version ) }}"
-    alt_groups:
-        - javac
-        - java
-        - javap
-        - jstack
-        - jps
-
-- block:
-  - name: Download JDK
-    get_url: url="{{ _jdk.url }}" dest="{{ _jdk.local_cache_dir }}/{{ jdk_tgz }}" headers="Cookie:oraclelicense=accept-securebackup-cookie"
-    register: downloaded_jdk
-  - name: Download JCE
-    get_url: url="{{ _jdk.jce.url }}" dest="{{ _jdk.local_cache_dir }}/{{ jce_zip }}" headers="Cookie:oraclelicense=accept-securebackup-cookie"
-    register: downloaded_jce
-  - block:
-    - name: Create Temp Unpack Dir
-      command: mktemp -d
-      register: tmp_unpack_dir_reg
-    - set_fact:
-        tmp_unpack_dir: "{{ tmp_unpack_dir_reg.stdout }}"
-    - name: Unzip JDK
-      command: tar xzf "{{ _jdk.local_cache_dir }}/{{ jdk_tgz }}" -C "{{ tmp_unpack_dir }}"
-    - name: Unzip JCE
-      command: unzip "{{ _jdk.local_cache_dir }}/{{ jce_zip }}" -d "{{ tmp_unpack_dir }}"
-    - name: Inject JCE
-      shell: cp "{{ tmp_unpack_dir }}/{{ item }}" "{{ tmp_unpack_dir }}/{{ jdk_dir }}/jre/lib/security"
-      with_items: "{{ _jdk.jce.files }}"
-    - name: Remove old cached version
-      file: dest="{{ _jdk.local_cache_dir }}/{{ jdk_dir }}" state=absent
-    - name: Update local cache
-      command: mv "{{ tmp_unpack_dir }}/{{ jdk_dir }}" "{{ _jdk.local_cache_dir }}/"
-    when: downloaded_jdk|changed or downloaded_jce|changed
-    always:
-      - name: Delete Temp Download Directory
-        file: path={{ tmp_unpack_dir }} state=absent
-        when: tmp_unpack_dir is defined and RW_DEBUG is not defined
-  run_once: yes
-  delegate_to: localhost
-
-- block:
-  - name: Create Install Base Dir
-    file: name="{{ _jdk.install_base_dir }}" state=directory owner=root group=root mode=0755
-  - name: Install JDK
-    synchronize: src="{{ _jdk.local_cache_dir }}/{{ jdk_dir }}" dest="{{ _jdk.install_base_dir }}/" delete=yes
-  - name: Set JDK ownership
-    file: dest="{{ _jdk.install_base_dir }}/{{ jdk_dir }}" owner=root group=root recurse=yes state=directory
-  - name: Symlink JDK
-    file: src="{{ _jdk.install_base_dir }}/{{ jdk_dir }}" dest="{{ _jdk.symlink }}" state=link
-    when: _jdk.symlink is defined
-  - name: Update JDK Alternatives
-    command: update-alternatives --install "/usr/bin/{{ item }}" {{ item }} {{ alt_dir }}/bin/{{ item }} {{ _jdk.prio }} --slave "/usr/share/man/man1/{{ item }}.1" "{{ item }}.1" {{ alt_dir }}/man/man1/{{ item }}.1
-    with_items: "{{ alt_groups }}"
-  - name: Select JDK as active alternative
-    command: update-alternatives --set {{ item }} {{ alt_dir }}/bin/{{ item }}
-    with_items: "{{ alt_groups }}"
-    when: _jdk.make_default|default(No)
-  become: yes
-
-
-# vim: set ft=ansible:set noet:ts=2:ws=2:
