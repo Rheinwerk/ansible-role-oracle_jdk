@@ -2,4 +2,7 @@
 # defaults file for ansible-role-oracle_jdk
 
 # NONE
+_oracle_jdk:
+  apt_repo:
+    repo_line: "ppa:webupd8team/java"
 

@@ -1,8 +1,9 @@
 ---
-# Install Java via PPA
+# Install Java Debian Package
 
-- name: Add webupd8team PPA
-  apt_repository: repo='ppa:webupd8team/java'
+- name: Add Repository if specified
+  apt_repository: repo='{{ _oracle_jdk.apt_repo.repo_line }}'
+  when: _oracle_jdk is defined and _oracle_jdk.apt_repo is defined and _oracle_jdk.apt_repo.repo_line is defined and _oracle_jdk.apt_repo.repo_line != ""
 
 - name: Auto-Accept Oracle Licensing Terms
   debconf: name="oracle-java8-installer" setting="shared/accepted-oracle-license-v1-1" vtype="select" value="true"
