@@ -14,3 +14,14 @@
     - oracle-java8-installer
     - oracle-java8-unlimited-jce-policy
 
+- name: "Set security setting for DNS cache ttl"
+  lineinfile:
+    path: "{{ _oracle_jdk.install_dir }}/jre/lib/security/java.security"
+    regexp: '^(.*)networkaddress.cache.ttl=(.*)$'
+    line: "networkaddress.cache.ttl={{ _oracle_jdk.security.dns_cache_ttl }}"
+
+- name: "Set security setting for DNS cache negative ttl"
+  lineinfile:
+    path: "{{ _oracle_jdk.install_dir }}/jre/lib/security/java.security"
+    regexp: '^(.*)networkaddress.cache.negative.ttl=(.*)$'
+    line: "networkaddress.cache.negative.ttl={{ _oracle_jdk.security.dns_cache_negative_ttl }}"
