@@ -36,4 +36,3 @@ _oracle_jdk:
     # For this reason the default caching policy is to maintain these
     # results for 10 seconds.
     dns_cache_negative_ttl: 10
-
