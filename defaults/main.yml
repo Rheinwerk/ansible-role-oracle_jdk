@@ -4,6 +4,7 @@
 # NONE
 _oracle_jdk:
   apt_repo:
+    key_id: "EEA14886"
     repo_line: "ppa:webupd8team/java"
   install_dir: "/usr/lib/jvm/java-8-oracle"
   security:

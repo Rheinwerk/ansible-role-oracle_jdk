@@ -1,9 +1,19 @@
 ---
 # Install Java Debian Package
 
-- name: Add Repository if specified
-  apt_repository: repo='{{ _oracle_jdk.apt_repo.repo_line }}'
-  when: _oracle_jdk is defined and _oracle_jdk.apt_repo is defined and _oracle_jdk.apt_repo.repo_line is defined and _oracle_jdk.apt_repo.repo_line != ""
+- block:
+    - name: Add Repository Key by URL if sepcified
+      apt_key: url="{{ _oracle_jdk.apt_repo.key_url }}" id="{{ _oracle_jdk.apt_repo.key_id | default(omit) }}" state=present
+      when: _oracle_jdk.apt_repo.key_url is defined and _oracle_jdk.apt_repo.key_url != ""
+
+    - name: Add Repository Key by ID if sepcified
+      apt_key: id="{{ _oracle_jdk.apt_repo.key_id }}" keyserver="{{ _oracle_jdk.apt_repo.key_server | default('keyserver.ubuntu.com')  }}" state=present
+      when: _oracle_jdk.apt_repo.key_id is defined and _oracle_jdk.apt_repo.key_id != ""
+
+    - name: Add Repository if specified
+      apt_repository: repo='{{ _oracle_jdk.apt_repo.repo_line }}'
+      when: _oracle_jdk.apt_repo.repo_line is defined and _oracle_jdk.apt_repo.repo_line != ""
+  when: _oracle_jdk is defined and _oracle_jdk.apt_repo is defined
 
 - name: Auto-Accept Oracle Licensing Terms
   debconf: name="oracle-java8-installer" setting="shared/accepted-oracle-license-v1-1" vtype="select" value="true"
