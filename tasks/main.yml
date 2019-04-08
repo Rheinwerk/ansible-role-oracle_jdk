@@ -18,12 +18,21 @@
 - name: Auto-Accept Oracle Licensing Terms
   debconf: name="oracle-java8-installer" setting="shared/accepted-oracle-license-v1-1" vtype="select" value="true"
 
-- name: Install Java 8 JDK
+- name: "Install Java 8 JDK ({{ _oracle_jdk.version }})"
+  apt:
+    state: present
+    name:
+      - oracle-java8-installer={{ _oracle_jdk.version }}
+      - oracle-java8-unlimited-jce-policy={{ _oracle_jdk.version }}
+  when: _oracle_jdk is defined and _oracle_jdk.version is defined and _oracle_jdk.version != ""
+
+- name: "Install Java 8 JDK (Latest)"
   apt:
     state: latest
     name:
       - oracle-java8-installer
       - oracle-java8-unlimited-jce-policy
+  when: _oracle_jdk is defined and not _oracle_jdk.version is defined
 
 - name: "Set security setting for DNS cache ttl"
   lineinfile:
