@@ -3,7 +3,7 @@ Oracle JDK
 
 This role downloads and installs an Oracle JDK and sets it up as the default JDK on Ubuntu. The .deb files come from ["WebUpd8" team's PPA repository](https://launchpad.net/~webupd8team/+archive/ubuntu/java).
 
-[![Build Status](https://travis-ci.org/Rheinwerk/ansible-role-oracle_jdk.svg?branch=master)](https://travis-ci.org/Rheinwerk/ansible-role-oracle_jdk)
+[![Build Status](https://github.com/Rheinwerk/ansible-role-oracle_jdk/actions/workflows/ci.yml/badge.svg)](https://github.com/Rheinwerk/ansible-role-oracle_jdk/actions/workflows/ci.yml)
 
 Requirements
 ------------
