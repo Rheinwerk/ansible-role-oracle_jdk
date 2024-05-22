@@ -25,13 +25,13 @@ jobs:
 
     steps:
       - name: Check out the codebase
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Alternativ könnte man auch pip / setuptools über apt installieren, dies dauert nur ewig lang im Vergleich
       # 18.04 braucht dann auch noch Rust aufgrund pip <-> cryptography > 3.4  Abhängigkeit: https://github.com/pyca/cryptography/issues/5771#issuecomment-775016788
       # Das können wir uns alles sparen
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
