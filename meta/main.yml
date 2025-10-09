@@ -1,5 +1,5 @@
 galaxy_info:
-  author: Daniel Schneller
+  author: rheinwerk
   description: Installs an Oracle JDK on Ubuntu and optionally makes it default
   company: Rheinwerk
   license: license (GPLv3)
