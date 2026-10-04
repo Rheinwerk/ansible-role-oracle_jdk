@@ -19,7 +19,7 @@
   debconf: name="oracle-java8-installer" setting="shared/accepted-oracle-license-v1-1" vtype="select" value="true"
 
 - name: "Install Java 8 JDK ({{ _oracle_jdk.version }})"
-  apt:
+  ansible.builtin.apt:
     state: present
     name:
       - oracle-java8-installer={{ _oracle_jdk.version }}
@@ -27,7 +27,7 @@
   when: _oracle_jdk is defined and _oracle_jdk.version is defined and _oracle_jdk.version != ""
 
 - name: "Install Java 8 JDK (Latest)"
-  apt:
+  ansible.builtin.apt:
     state: latest
     name:
       - oracle-java8-installer
@@ -35,13 +35,13 @@
   when: _oracle_jdk is defined and not _oracle_jdk.version is defined
 
 - name: "Set security setting for DNS cache ttl"
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ _oracle_jdk.install_dir }}/jre/lib/security/java.security"
     regexp: '^(.*)networkaddress.cache.ttl=(.*)$'
     line: "networkaddress.cache.ttl={{ _oracle_jdk.security.dns_cache_ttl }}"
 
 - name: "Set security setting for DNS cache negative ttl"
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ _oracle_jdk.install_dir }}/jre/lib/security/java.security"
     regexp: '^(.*)networkaddress.cache.negative.ttl=(.*)$'
     line: "networkaddress.cache.negative.ttl={{ _oracle_jdk.security.dns_cache_negative_ttl }}"

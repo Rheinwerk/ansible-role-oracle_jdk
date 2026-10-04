@@ -1,57 +1,42 @@
 ---
+# Lint, molecule and the Galaxy release on tags come from the reusable workflow in
+# Rheinwerk/molecule, see its README.md for the inputs.
+# TEMPORARY: @reusable-workflow and molecule_ref 'reusable-workflow' until Rheinwerk/molecule#18
+# is merged, then both become main.
 name: CI
+
 on:
+  workflow_dispatch:
+    inputs:
+      force_run:
+        description: Run molecule even if only ignored files changed
+        type: boolean
+        default: false
+      molecule_debug:
+        description: Open a tmate session right before molecule runs
+        type: boolean
+        default: false
+      args:
+        description: Additional arguments passed to molecule test
+        type: string
+        default: ''
+      molecule_ref:
+        description: Ref of Rheinwerk/molecule to take the action and scenario from
+        type: string
+        default: reusable-workflow
   pull_request:
   push:
-    branches:
-      - master
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '30 1 * * 3'
 
 jobs:
-
-  lint:
-    name: CI for Ansible ${{ matrix.ansible-version }} / ${{ matrix.os }} / Python ${{ matrix.python-version }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      # Teste alle Kombinationen, auch wenn 1 Job fehlschlägt
-      fail-fast: false
-      matrix:
-        # Nutze die letzten Patch Versionen
-        ansible-version: [ '>=2.9, <2.10', '>=2.10, <2.11' ]
-        os: [ 'ubuntu-18.04', 'ubuntu-20.04' ]
-        # Python Default Versions: 3.6 in Bionic, 3.8 in Focal
-        python-version: [ '3.6', '3.8' ]
-
-    steps:
-      - name: Check out the codebase
-        uses: actions/checkout@v2
-
-      # Alternativ könnte man auch pip / setuptools über apt installieren, dies dauert nur ewig lang im Vergleich
-      # 18.04 braucht dann auch noch Rust aufgrund pip <-> cryptography > 3.4  Abhängigkeit: https://github.com/pyca/cryptography/issues/5771#issuecomment-775016788
-      # Das können wir uns alles sparen
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install Ansible ${{ matrix.ansible-version }}
-        run: pip3 install 'ansible${{ matrix.ansible-version }}'
-
-      # Yamllint ist bereits im Ubuntu Image enthalten: https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-README.md
-      - name: Check versions
-        run: |
-          ansible --version
-          yamllint --version
-
-      - name: Create ansible.cfg with correct roles_path
-        run: |
-          printf '[defaults]\nroles_path=../' >ansible.cfg
-
-      - name: Run Checks
-        run: |
-          find . -name '*.yml' -print0 | xargs -0 yamllint -c galaxy-yamllint.yaml
-          cd tests; ansible-playbook test.yml -i inventory --syntax-check
-          ./run_tests.sh
-        env:
-          ANSIBLE_FORCE_COLOR: '1'
+  ci:
+    uses: Rheinwerk/molecule/.github/workflows/role.yml@reusable-workflow
+    with:
+      # format() turns the dispatch booleans into 'true'/'false' ('' on push, pull request and schedule)
+      force_run: ${{ format('{0}', inputs.force_run) }}
+      molecule_debug: ${{ format('{0}', inputs.molecule_debug) }}
+      args: ${{ inputs.args }}
+      molecule_ref: ${{ inputs.molecule_ref || 'reusable-workflow' }}
+    # passes GALAXY_API_KEY for the release job
+    secrets: inherit
