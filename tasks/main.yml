@@ -1,33 +1,46 @@
 ---
 # Install Java Debian Package
 
-- block:
-    - name: Add Repository Key by URL if sepcified
-      apt_key: url="{{ _oracle_jdk.apt_repo.key_url }}" id="{{ _oracle_jdk.apt_repo.key_id | default(omit) }}" state=present
+- name: Configure the apt repository for the Oracle JDK
+  when: _oracle_jdk is defined and _oracle_jdk.apt_repo is defined
+  block:
+    - name: Add Repository Key by URL if specified
+      ansible.builtin.apt_key:
+        url: "{{ _oracle_jdk.apt_repo.key_url }}"
+        id: "{{ _oracle_jdk.apt_repo.key_id | default(omit) }}"
+        state: present
       when: _oracle_jdk.apt_repo.key_url is defined and _oracle_jdk.apt_repo.key_url != ""
 
-    - name: Add Repository Key by ID if sepcified
-      apt_key: id="{{ _oracle_jdk.apt_repo.key_id }}" keyserver="{{ _oracle_jdk.apt_repo.key_server | default('keyserver.ubuntu.com')  }}" state=present
+    - name: Add Repository Key by ID if specified
+      ansible.builtin.apt_key:
+        id: "{{ _oracle_jdk.apt_repo.key_id }}"
+        keyserver: "{{ _oracle_jdk.apt_repo.key_server | default('keyserver.ubuntu.com') }}"
+        state: present
       when: _oracle_jdk.apt_repo.key_id is defined and _oracle_jdk.apt_repo.key_id != ""
 
     - name: Add Repository if specified
-      apt_repository: repo='{{ _oracle_jdk.apt_repo.repo_line }}'
+      ansible.builtin.apt_repository:
+        repo: "{{ _oracle_jdk.apt_repo.repo_line }}"
       when: _oracle_jdk.apt_repo.repo_line is defined and _oracle_jdk.apt_repo.repo_line != ""
-  when: _oracle_jdk is defined and _oracle_jdk.apt_repo is defined
 
 - name: Auto-Accept Oracle Licensing Terms
-  debconf: name="oracle-java8-installer" setting="shared/accepted-oracle-license-v1-1" vtype="select" value="true"
+  ansible.builtin.debconf:
+    name: oracle-java8-installer
+    question: shared/accepted-oracle-license-v1-1
+    vtype: select
+    value: "true"
 
 - name: "Install Java 8 JDK ({{ _oracle_jdk.version }})"
-  apt:
+  ansible.builtin.apt:
     state: present
     name:
       - oracle-java8-installer={{ _oracle_jdk.version }}
       - oracle-java8-unlimited-jce-policy={{ _oracle_jdk.version }}
   when: _oracle_jdk is defined and _oracle_jdk.version is defined and _oracle_jdk.version != ""
 
-- name: "Install Java 8 JDK (Latest)"
-  apt:
+# latest is the documented behaviour of this task
+- name: "Install Java 8 JDK (Latest)" # noqa package-latest
+  ansible.builtin.apt:
     state: latest
     name:
       - oracle-java8-installer
@@ -35,13 +48,13 @@
   when: _oracle_jdk is defined and not _oracle_jdk.version is defined
 
 - name: "Set security setting for DNS cache ttl"
-  lineinfile:
-    path: "{{ _oracle_jdk.install_dir }}/jre/lib/security/java.security"
+  ansible.builtin.lineinfile:
+    path: "{{ _oracle_jdk.install_dir }}/jre/lib/security/java.security"
     regexp: '^(.*)networkaddress.cache.ttl=(.*)$'
     line: "networkaddress.cache.ttl={{ _oracle_jdk.security.dns_cache_ttl }}"
 
 - name: "Set security setting for DNS cache negative ttl"
-  lineinfile:
-    path: "{{ _oracle_jdk.install_dir }}/jre/lib/security/java.security"
+  ansible.builtin.lineinfile:
+    path: "{{ _oracle_jdk.install_dir }}/jre/lib/security/java.security"
     regexp: '^(.*)networkaddress.cache.negative.ttl=(.*)$'
     line: "networkaddress.cache.negative.ttl={{ _oracle_jdk.security.dns_cache_negative_ttl }}"
